@@ -1,0 +1,239 @@
+Simple scripts to create two-tiered private CA based on https://www.feistyduck.com/library/openssl-cookbook/online/ch-openssl.html 
+
+OVERVIEW
+--------
+
+Scripts provided here create a simple two-tiered private CA like below:
+
+       +-------------------------------------------------+
+       |       +------+                                  |
+       |       +------+                                  |
+       |       |      |   Root CA (root-ca.example.com)  |
+       |       +------+   (Usually Offline)              |
+       |       |      |                                  |
+       |       +--+---+                                  |
+       |          |                                      |
+   (1) |          |                                      |
+       |          |                                      |
+       |       +--+---+                                  |
+       |       |      |  Intermediate CA (sub-ca)        |
+       |       +------+  (Certificate issuer / signer)   |
+       |       +------+                                  |
+       |       |      |                                  |
+       |       +------+                                  |
+       +-------------------------------------------------+
+             ^   |                   ^   |
+             |   |               CSR |   | Signed Cert
+             |   |                   |   v
+             |   |                 +-+---+---+
+             |   |                 |         |
+             |   |            (2)  +---------+  Web Server Admin
+             |   |                 +---------+  (www.myserver.com)
+             |   |                 |         |
+             |   |                 |         |
+             |   |                 +---------+
+             |   |
+         CSR |   | Signed Cert
+             |   v
+           +-+---+---+
+           |         |
+      (3)  +---------+  Web Server Admin
+           +---------+  (www.myserver.com)
+           |         |
+           |         |
+           +---------+
+
+(1) CA: First create Root CA (usually offline) and Sub CA (Intermediate CA); Sub CA signs/issues certificates.
+
+(2) Server: Web Server Admin generates key / cert pair and send a CSR to Sub CA for signing. After Sub CA signs cert, 
+    it sends it back to Web Server Admin who installs it approriately. 
+
+(3) Client: If Web Server needs client cert authentication, Web Server Admin needs to generate appropriate client
+    certificates and have them signed by Sub CA. After Sub CA signs them, client needs to install them appropriately.
+
+
+INSTALLATION / RUNNING / TESTING
+--------------------------------
+
+Simply download the scripts (tgz) and run them in following order.
+
+tar zxfv MyCA.tgz
+cd MyCA
+
+./createCA.pl 
+./genServerCSR.pl 
+./signServerCert.pl 
+./convertServerCert.pl 
+
+./genClientCSR.pl 
+./signClientCert.pl 
+./convertClientCert.pl 
+./genCRL.pl 
+
+Above steps should create:
+
+- Server cert: ./server.crt ./server.key ./server.pfx
+- Client cert: ./client.crt ./client.key ./client.pfx
+- Root CA cert: ./root-ca/root-ca.crt
+- Sub CA cert: ./root-ca/sub-ca.crt
+- CRL: ./sub-ca.crl
+
+Sample file structure after above commands:
+
+jchakma@jchakma-virtual-machine:~/MyTools/MyCA$ tree
+.
+├── client.conf
+├── client.crt
+├── client.csr
+├── client.key
+├── client.pfx
+├── convertClientCert.pl
+├── convertServerCert.pl
+├── createCA.pl
+├── genClientCSR.pl
+├── genCRL.pl
+├── genServerCSR.pl
+├── README
+├── revokeClientCert.pl
+├── revokeServerCert.pl
+├── root-ca
+│   ├── certs
+│   │   ├── 080B745CA411FDD74EDCD92254519CEA.pem
+│   │   ├── 080B745CA411FDD74EDCD92254519CEB.pem
+│   │   ├── 080B745CA411FDD74EDCD92254519CEC.pem
+│   │   └── 080B745CA411FDD74EDCD92254519CED.pem
+│   ├── db
+│   │   ├── crlnumber
+│   │   ├── crlnumber.old
+│   │   ├── index
+│   │   ├── index.attr
+│   │   ├── index.attr.old
+│   │   ├── index.old
+│   │   ├── serial
+│   │   └── serial.old
+│   ├── private
+│   │   ├── root-ca.key
+│   │   └── sub-ca.key
+│   ├── root-ca.crt
+│   ├── root-ca.csr
+│   ├── sub-ca.crt
+│   └── sub-ca.csr
+├── root-ca.conf
+├── server.conf
+├── server.crt
+├── server.csr
+├── server.key
+├── server.pfx
+├── signClientCert.pl
+├── signServerCert.pl
+├── sub-ca.conf
+└── sub-ca.crl
+
+4 directories, 42 files
+jchakma@jchakma-virtual-machine:~/MyTools/MyCA$
+
+
+!!! VERY IMPORTANT !!!
+
+(1) Client: need to install Root CA cert in trusted Root CA list (root-ca/root-ca.crt).
+(2) Server: need to install signed cert along with intermediate CA certificate (root-ca/sub-ca.crt).
+(3) CRL: need to host CRL file on an appropriate webserver (default: http://sub-ca.example.com/sub-ca.crl)
+
+
+TEST ENVIRONMENT
+----------------
+
+- OS:
+
+jchakma@ubuntu:~/MyTools/MyCA$ lsb_release -a
+No LSB modules are available.
+Distributor ID:	Ubuntu
+Description:	Ubuntu 18.04.1 LTS
+Release:	18.04
+Codename:	bionic
+jchakma@ubuntu:~/MyTools/MyCA$ 
+
+- OpenSSL Version:
+
+jchakma@ubuntu:~/MyTools/MyCA$ openssl version
+OpenSSL 1.1.0g  2 Nov 2017
+jchakma@ubuntu:~/MyTools/MyCA$ 
+
+
+
+APPENDIX
+--------
+
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            08:0b:74:5c:a4:11:fd:d7:4e:dc:d9:22:54:51:9c:ec
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C = JP, O = Example, CN = Sub CA
+        Validity
+            Not Before: Feb 16 14:35:33 2019 GMT
+            Not After : Feb 13 14:35:33 2029 GMT
+        Subject: C = JP, O = Example, CN = vpn.example.com, emailAddress = webmaster@example.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:9c:02:cb:07:6e:2c:69:09:57:a6:84:c1:ed:65:
+                    a0:bb:f6:29:4d:5d:df:10:37:01:df:29:f8:43:83:
+                    19:11:e3:85:54:ba:0e:f8:be:19:70:bb:ee:9b:b7:
+                    26:bf:60:70:c0:96:5f:6d:b1:95:80:94:e0:d0:41:
+                    a4:0c:6c:c9:86:1e:48:4e:61:02:73:fc:d6:f3:21:
+                    f4:41:08:cf:e1:a4:54:2e:52:02:7a:fe:d7:d5:0b:
+                    2f:fb:d0:3a:d8:d9:ac:8e:29:f9:67:dc:97:4b:f2:
+                    9b:fb:84:ad:0e:e0:04:6a:a6:31:97:d5:12:a7:10:
+                    e3:1b:b5:3c:32:13:ab:6b:3b:5b:ac:55:bd:f1:46:
+                    66:56:cf:bb:4c:2d:24:e2:f6:c5:10:23:a4:ea:9e:
+                    f4:4a:54:d7:9d:ce:5f:f1:c5:9a:49:41:da:5d:f5:
+                    e2:51:47:fe:1e:ca:73:a6:a0:4e:5a:8a:65:59:80:
+                    24:2c:fb:d0:d3:ad:f4:07:05:f4:6c:b3:09:56:8f:
+                    61:b7:17:8a:c1:6a:be:28:55:8c:7b:23:31:de:b5:
+                    c8:40:81:6a:b9:70:20:c1:f7:69:62:17:9c:cc:47:
+                    07:6e:d3:9d:9d:10:53:26:99:94:4f:63:73:05:d2:
+                    6c:09:97:bb:25:ff:88:de:ec:1a:7c:20:90:9d:00:
+                    aa:07
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            Authority Information Access:
+                CA Issuers - URI:http://sub-ca.example.com/sub-ca.crt
+                OCSP - URI:http://ocsp.sub-ca.example.com:9081
+
+            X509v3 Authority Key Identifier:
+                keyid:33:70:81:8F:77:7B:F0:B5:98:B0:E2:7A:68:25:A5:AB:40:C8:EB:67
+
+            X509v3 Basic Constraints: critical
+                CA:FALSE
+            X509v3 CRL Distribution Points:
+
+                Full Name:
+                  URI:http://sub-ca.example.com/sub-ca.crl
+
+            X509v3 Extended Key Usage:
+                TLS Web Client Authentication, TLS Web Server Authentication, Code Signing, E-mail Protection
+            X509v3 Key Usage: critical
+                Digital Signature, Non Repudiation, Key Encipherment
+            X509v3 Subject Key Identifier:
+                B1:02:04:F9:A7:88:B7:16:22:89:96:DE:5F:FC:54:F9:72:AA:F3:8B
+            X509v3 Subject Alternative Name:
+                DNS:vpn.example.com, DNS:www.example.com, DNS:*.example.com
+    Signature Algorithm: sha256WithRSAEncryption
+         8f:62:ac:21:2c:0b:d1:f7:fd:b7:be:c5:bb:a6:f6:81:bb:7f:
+         a7:b5:89:8a:10:f4:0c:98:f1:a7:2f:b0:ff:75:d1:2d:93:4f:
+         06:71:3d:99:f2:f3:5f:ec:d8:1e:74:62:b5:d6:d7:50:35:10:
+         d1:2a:f5:01:bc:f7:96:f8:e2:d8:4a:ad:b5:ec:c5:e7:5b:f6:
+         41:da:72:e5:f5:ca:36:42:72:24:29:17:d9:44:3f:48:41:c8:
+         c6:f3:29:fa:2a:71:33:ec:8a:78:ee:a2:fd:a7:ac:20:dd:fe:
+         9f:05:b9:d1:65:43:c5:cc:57:d2:c8:04:28:1e:bc:0e:cc:e9:
+         63:7f:85:2d:9a:f5:16:c3:ff:3f:14:97:35:36:29:9e:d9:4f:
+         d5:cb:22:e7:8c:9a:31:ea:db:f1:91:72:b6:f6:07:6f:7a:9b:
+         03:95:e1:e0:11:ed:09:67:a9:2b:3a:3d:1a:57:fe:c9:d7:aa:
+         1b:1e:32:01:eb:79:c1:05:84:18:f3:d1:02:d0:0c:b2:6a:81:
+         5f:5f:8b:c8:b6:94:b1:7e:82:9d:ac:23:cf:bd:af:fc:a7:45:
+         14:bb:91:e5:90:4f:9f:e8:2d:fb:83:19:9e:97:68:ca:3d:7e:
+         73:8e:3a:29:3b:c6:55:7b:05:33:09:33:b0:0d:b3:10:1c:62:
+         bc:06:54:9d
