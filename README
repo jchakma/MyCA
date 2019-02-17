@@ -173,6 +173,8 @@ jchakma@ubuntu:~/MyTools/MyCA$
 APPENDIX
 --------
 
+- Sample server-cert:
+
 Certificate:
     Data:
         Version: 3 (0x2)
@@ -246,3 +248,46 @@ Certificate:
          14:bb:91:e5:90:4f:9f:e8:2d:fb:83:19:9e:97:68:ca:3d:7e:
          73:8e:3a:29:3b:c6:55:7b:05:33:09:33:b0:0d:b3:10:1c:62:
          bc:06:54:9d
+
+- Show all Info (convenient for a quick summary):
+
+jchakma@jchakma-virtual-machine:~/MyTools/MyCA$ ./showInfo.pl
+
+###############################################################################
+#
+# Showing Root CA related info
+#
+###############################################################################
+
+name = root-ca
+domain_suffix: example.com
+aia_url: http://root-ca.example.com/root-ca.crt
+crl_url: http://root-ca.example.com/root-ca.crl
+ocsp_url: http://ocsp.root-ca.example.com:9080
+
+- RELATED FILES
+
+root-ca.crt => root-ca/root-ca.crt
+root-ca.crl => root-ca.crl (!!! Use ./genCRL.pl to generate CRL !!!)
+ocsp signing cert / key => root-ocsp.crt / root-ca/private/root-ocsp.key (!!! use: genRootOCSPCert.pl / runRootOCSP.pl !!!)
+
+###############################################################################
+#
+# Showing Sub CA related info
+#
+###############################################################################
+
+name = sub-ca
+domain_suffix: example.com
+aia_url: http://sub-ca.example.com/sub-ca.crt
+crl_url: http://sub-ca.example.com/sub-ca.crl
+ocsp_url: http://ocsp.sub-ca.example.com:9081
+
+- RELATED FILES
+
+sub-ca.crt => root-ca/sub-ca.crt
+sub-ca.crl => sub-ca.crl (!!! Use ./genCRL.pl to generate CRL) !!!
+ocsp signing cert / key => sub-ca-ocsp.crt / root-ca/private/sub-ca-ocsp.key (!!! use genSubCAOCSPCert.pl / runSubCAOCSP.pl !!!)
+
+
+jchakma@jchakma-virtual-machine:~/MyTools/MyCA$
