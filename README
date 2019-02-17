@@ -70,6 +70,12 @@ cd MyCA
 ./convertClientCert.pl 
 ./genCRL.pl 
 
+./genRootOCSPCert.pl
+./runRootOCSP.pl
+
+./genSubCAOCSPCert.pl
+./runSubCAOCSP.pl
+
 Above steps should create:
 
 - Server cert: ./server.crt ./server.key ./server.pfx
@@ -78,7 +84,10 @@ Above steps should create:
 - Sub CA cert: ./root-ca/sub-ca.crt
 - CRL: ./sub-ca.crl
 
-Sample file structure after above commands:
+- Root CA OCSP signing cert: root-ocsp.crt, root-ca/private/root-ocsp.key
+- Sub CA OCSP signing cert: sub-ca-ocsp.crt, root-ca/private/sub-ca-ocsp.key
+
+Sample file structure after above commands (excluding OCSP files):
 
 jchakma@jchakma-virtual-machine:~/MyTools/MyCA$ tree
 .
