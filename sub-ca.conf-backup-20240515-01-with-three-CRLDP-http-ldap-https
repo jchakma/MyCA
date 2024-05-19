@@ -4,6 +4,7 @@ domain_suffix           = example.com
 aia_url                 = http://$name.$domain_suffix/$name.crt
 crl_url                 = http://$name.$domain_suffix/$name.crl
 crl_url2		= ldap://$name.$domain_suffix/CN=CA,DC=example,DC=com?certificateRevocationList?base?objectClass=cRLDistributionPoint
+crl_url3                = https://$name.$domain_suffix/$name.crl
 ocsp_url                = http://ocsp.$name.$domain_suffix:9081
 default_ca              = ca_default
 name_opt                = utf8,esc_ctrl,multiline,lname,align
@@ -77,6 +78,7 @@ subjectKeyIdentifier    = hash
 [crl_info]
 URI.0                   = $crl_url
 URI.1                   = $crl_url2
+URI.2                   = $crl_url3
 
 [issuer_info]
 caIssuers;URI.0         = $aia_url

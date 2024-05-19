@@ -2,9 +2,10 @@
 name                    = sub-ca
 domain_suffix           = example.com
 aia_url                 = http://$name.$domain_suffix/$name.crt
-crl_url                 = http://$name.$domain_suffix/$name.crl
-crl_url2		= ldap://$name.$domain_suffix/CN=CA,DC=example,DC=com?certificateRevocationList?base?objectClass=cRLDistributionPoint
-ocsp_url                = http://ocsp.$name.$domain_suffix:9081
+#crl_url                 = http://$name.$domain_suffix/$name.crl
+#crl_url2		= ldap://$name.$domain_suffix/CN=CA,DC=example,DC=com?certificateRevocationList?base?objectClass=cRLDistributionPoint
+#crl_url3                = https://$name.$domain_suffix/$name.crl
+#ocsp_url                = http://ocsp.$name.$domain_suffix:9081
 default_ca              = ca_default
 name_opt                = utf8,esc_ctrl,multiline,lname,align
 
@@ -47,40 +48,41 @@ prompt                  = no
 distinguished_name      = ca_dn
 
 [server_ext]
-authorityInfoAccess     = @issuer_info
+#authorityInfoAccess     = @issuer_info
 authorityKeyIdentifier  = keyid:always
 basicConstraints        = critical,CA:false
-crlDistributionPoints   = @crl_info
+#crlDistributionPoints   = @crl_info
 extendedKeyUsage        = clientAuth,serverAuth,codeSigning,emailProtection
 keyUsage                = critical,nonRepudiation,digitalSignature,keyEncipherment
 subjectKeyIdentifier    = hash
 
 [client_ext]
-authorityInfoAccess     = @issuer_info
+#authorityInfoAccess     = @issuer_info
 authorityKeyIdentifier  = keyid:always
 basicConstraints        = CA:false
-crlDistributionPoints   = @crl_info
+#crlDistributionPoints   = @crl_info
 extendedKeyUsage        = clientAuth
 keyUsage                = digitalSignature
 subjectKeyIdentifier    = hash
 
 [codesigning_ext]
-authorityInfoAccess     = @issuer_info
+#authorityInfoAccess     = @issuer_info
 authorityKeyIdentifier  = keyid:always
 basicConstraints        = CA:false
-crlDistributionPoints   = @crl_info
+#crlDistributionPoints   = @crl_info
 extendedKeyUsage        = codeSigning
 keyUsage                = digitalSignature
 subjectKeyIdentifier    = hash
 
 
-[crl_info]
-URI.0                   = $crl_url
-URI.1                   = $crl_url2
+#[crl_info]
+#URI.0                   = $crl_url
+#URI.1                   = $crl_url2
+#URI.2                   = $crl_url3
 
-[issuer_info]
-caIssuers;URI.0         = $aia_url
-OCSP;URI.0              = $ocsp_url
+#[issuer_info]
+#caIssuers;URI.0         = $aia_url
+#OCSP;URI.0              = $ocsp_url
 
 [ocsp_ext]
 authorityKeyIdentifier  = keyid:always

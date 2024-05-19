@@ -86,6 +86,16 @@ sub printInfo
       print "crl_url: $crl_url\n"; 
    }
 
+   if ($lines =~ /crl_url2\s+\=\s(.+)/)
+   {
+      $crl_url2 = "$1";
+      $crl_url2 =~ s/\$name/$name/g;
+      $crl_url2 =~ s/\$domain_suffix/$domain_suffix/g;
+
+      print "crl_url2: $crl_url2\n"; 
+   }
+
+
    if ($lines =~ /ocsp_url\s+\=\s(.+)/)
    {
       $ocsp_url = "$1";
